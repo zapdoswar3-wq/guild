@@ -45,6 +45,12 @@ const talentos = [
 const niveis = [1, 1, 0, 0, 0];
 
 async function main() {
+  const contas = await prisma.usuario.count();
+  if (contas > 0) {
+    console.log("Banco já possui usuários. Seed ignorado.");
+    return;
+  }
+
   await prisma.missao.deleteMany();
   await prisma.cacada.deleteMany();
   await prisma.objetivo.deleteMany();
