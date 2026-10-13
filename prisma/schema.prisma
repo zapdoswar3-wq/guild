@@ -14,6 +14,7 @@ model Usuario {
   nome      String
   senhaHash       String
   admin           Boolean  @default(false)
+  permissao       String   @default("visualizar")
   deveTrocarSenha Boolean  @default(false)
   criadoEm        DateTime @default(now())
 }
@@ -47,9 +48,9 @@ model Membro {
   entrada   DateTime
   status    String
   discord   String     @default("")
-  objetivos Objetivo[]
-  cacadas   Cacada[]
-  missoes   Missao[]
+  objetivos          Objetivo[]
+  cacadas            Cacada[]
+  missaoResponsaveis MissaoResponsavel[]
 
   @@index([guildId])
 }
@@ -121,16 +122,24 @@ model Missao {
   guildId       String
   titulo        String
   tipo          String
-  responsavelId String?
   prioridade    String
   status        String
   pontos        Int
   xp            Int
-  obs           String   @default("")
-  guild         Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
-  responsavel   Membro?  @relation(fields: [responsavelId], references: [id], onDelete: SetNull)
+  obs           String              @default("")
+  guild         Guild               @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  responsaveis  MissaoResponsavel[]
 
   @@index([guildId])
   @@index([data])
-  @@index([responsavelId])
+}
+
+model MissaoResponsavel {
+  missaoId String
+  membroId String
+  missao   Missao @relation(fields: [missaoId], references: [id], onDelete: Cascade)
+  membro   Membro @relation(fields: [membroId], references: [id], onDelete: Cascade)
+
+  @@id([missaoId, membroId])
+  @@index([membroId])
 }

@@ -1,7 +1,7 @@
 "use server";
 
 import { duplicateMessage, failure, formDataToObject, parseInput, revalidateApp } from "@/lib/action-utils";
-import { requireUser } from "@/lib/session";
+import { assertCan } from "@/lib/session";
 import { assertGuildExists } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
 import { talentoGuildSchema } from "@/lib/validators";
@@ -17,7 +17,8 @@ async function validateNivel(talentoId: string, nivel: number) {
 }
 
 export async function createTalentoGuild(formData: FormData) {
-  await requireUser();
+  const denied = await assertCan("create");
+  if (denied) return denied;
   const parsed = parseInput(talentoGuildSchema, formDataToObject(formData));
   if (!parsed.ok) return parsed;
   const guildError = await assertGuildExists(parsed.data.guildId);
@@ -38,7 +39,8 @@ export async function createTalentoGuild(formData: FormData) {
 }
 
 export async function updateTalentoGuild(id: string, formData: FormData) {
-  await requireUser();
+  const denied = await assertCan("edit");
+  if (denied) return denied;
   const parsed = parseInput(talentoGuildSchema, formDataToObject(formData));
   if (!parsed.ok) return parsed;
   const current = await prisma.talentoGuild.findUnique({ where: { id }, select: { id: true } });
@@ -61,7 +63,8 @@ export async function updateTalentoGuild(id: string, formData: FormData) {
 }
 
 export async function deleteTalentoGuild(id: string) {
-  await requireUser();
+  const denied = await assertCan("delete");
+  if (denied) return denied;
   const current = await prisma.talentoGuild.findUnique({ where: { id }, select: { id: true } });
   if (!current) return failure("Registro não encontrado.");
   try {

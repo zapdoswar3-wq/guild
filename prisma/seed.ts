@@ -211,18 +211,22 @@ async function main() {
     ],
   });
 
-  await prisma.missao.createMany({
-    data: [
-      { data: on(0), guildId: kanto.id, titulo: "Ginásio de Pewter", tipo: "Batalha", responsavelId: byNick.RedKanto, prioridade: "Alta", status: "Concluída", pontos: 120, xp: 400, obs: "" },
-      { data: on(0), guildId: kanto.id, titulo: "Pidgey da Rota 1", tipo: "Captura", responsavelId: byNick.MistyWater, prioridade: "Média", status: "Em andamento", pontos: 80, xp: 200, obs: "Faltam bolas." },
-      { data: on(0), guildId: kanto.id, titulo: "Frutas da Rota 2", tipo: "Coleta", responsavelId: byNick.BrockRock, prioridade: "Baixa", status: "Pendente", pontos: 40, xp: 80, obs: "" },
-      { data: on(0), guildId: johto.id, titulo: "Tributo semanal", tipo: "Doação", responsavelId: byNick.GoldJohto, prioridade: "Alta", status: "Falhou", pontos: 60, xp: 0, obs: "Cofre insuficiente." },
-      { data: on(0), guildId: johto.id, titulo: "Lugia do Whirl Islands", tipo: "Raid", responsavelId: byNick.CrystalWing, prioridade: "Alta", status: "Concluída", pontos: 200, xp: 800, obs: "" },
-      { data: on(0), guildId: hoenn.id, titulo: "Eevee da equipe", tipo: "Evolução", responsavelId: byNick.RubyHoenn, prioridade: "Média", status: "Concluída", pontos: 90, xp: 350, obs: "" },
-      { data: on(0), guildId: hoenn.id, titulo: "Elite Four", tipo: "Batalha", responsavelId: byNick.SapphireSea, prioridade: "Alta", status: "Pendente", pontos: 150, xp: 500, obs: "" },
-      { data: on(-1), guildId: hoenn.id, titulo: "Berries da Rota 104", tipo: "Coleta", responsavelId: byNick.MayRoute, prioridade: "Baixa", status: "Em andamento", pontos: 50, xp: 100, obs: "Continua aberta de ontem." },
-    ],
-  });
+  const missoesSeed = [
+    { data: on(0), guildId: kanto.id, titulo: "Ginásio de Pewter", tipo: "Batalha", responsaveis: [byNick.RedKanto, byNick.MistyWater], prioridade: "Alta", status: "Concluída", pontos: 120, xp: 400, obs: "" },
+    { data: on(0), guildId: kanto.id, titulo: "Pidgey da Rota 1", tipo: "Captura", responsaveis: [byNick.MistyWater], prioridade: "Média", status: "Em andamento", pontos: 80, xp: 200, obs: "Faltam bolas." },
+    { data: on(0), guildId: kanto.id, titulo: "Frutas da Rota 2", tipo: "Coleta", responsaveis: [byNick.BrockRock], prioridade: "Baixa", status: "Pendente", pontos: 40, xp: 80, obs: "" },
+    { data: on(0), guildId: johto.id, titulo: "Tributo semanal", tipo: "Doação", responsaveis: [byNick.GoldJohto], prioridade: "Alta", status: "Falhou", pontos: 60, xp: 0, obs: "Cofre insuficiente." },
+    { data: on(0), guildId: johto.id, titulo: "Lugia do Whirl Islands", tipo: "Raid", responsaveis: [byNick.CrystalWing, byNick.GoldJohto], prioridade: "Alta", status: "Concluída", pontos: 200, xp: 800, obs: "" },
+    { data: on(0), guildId: hoenn.id, titulo: "Eevee da equipe", tipo: "Evolução", responsaveis: [byNick.RubyHoenn], prioridade: "Média", status: "Concluída", pontos: 90, xp: 350, obs: "" },
+    { data: on(0), guildId: hoenn.id, titulo: "Elite Four", tipo: "Batalha", responsaveis: [byNick.SapphireSea, byNick.MayRoute], prioridade: "Alta", status: "Pendente", pontos: 150, xp: 500, obs: "" },
+    { data: on(-1), guildId: hoenn.id, titulo: "Berries da Rota 104", tipo: "Coleta", responsaveis: [byNick.MayRoute], prioridade: "Baixa", status: "Em andamento", pontos: 50, xp: 100, obs: "Continua aberta de ontem." },
+  ];
+  for (const missao of missoesSeed) {
+    const { responsaveis, ...data } = missao;
+    await prisma.missao.create({
+      data: { ...data, responsaveis: { create: responsaveis.map((membroId) => ({ membroId })) } },
+    });
+  }
 
   await prisma.cacada.createMany({
     data: [

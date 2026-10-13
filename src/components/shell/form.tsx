@@ -68,6 +68,49 @@ export function EnumSelect({
   );
 }
 
+export function MemberMultiSelect({
+  guildId,
+  members,
+  value,
+  onChange,
+}: {
+  guildId: string;
+  members: MemberOption[];
+  value: string[];
+  onChange: (value: string[]) => void;
+}) {
+  const options = members.filter((member) => member.guildId === guildId);
+  return (
+    <div className="grid max-h-40 gap-2 overflow-y-auto rounded-lg border border-[#262A36] bg-[#0F1117] p-3">
+      {value.map((id) => (
+        <input key={id} type="hidden" name="responsavelIds" value={id} />
+      ))}
+      {!guildId ? (
+        <p className="text-sm text-[#8B91A7]">Selecione a guild primeiro.</p>
+      ) : options.length === 0 ? (
+        <p className="text-sm text-[#8B91A7]">Esta guild ainda não tem membros.</p>
+      ) : (
+        options.map((member) => {
+          const checked = value.includes(member.id);
+          return (
+            <label key={member.id} className="flex items-center gap-2 text-sm text-[#E6E8EF]">
+              <input
+                type="checkbox"
+                className="size-4 accent-[#6366F1]"
+                checked={checked}
+                onChange={() =>
+                  onChange(checked ? value.filter((id) => id !== member.id) : [...value, member.id])
+                }
+              />
+              <span>{member.status === "Ativo" ? member.nick : `${member.nick} (${member.status})`}</span>
+            </label>
+          );
+        })
+      )}
+    </div>
+  );
+}
+
 export function MemberSelect({
   guildId,
   members,

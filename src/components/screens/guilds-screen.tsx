@@ -1,15 +1,14 @@
 "use client";
 
-import { Plus } from "lucide-react";
 import { useState } from "react";
 import { createGuild, deleteGuild, updateGuild } from "@/actions/guilds";
+import { CreateButton } from "@/components/shell/access";
 import { StatusBadge } from "@/components/shell/badges";
 import { FilterBar } from "@/components/shell/filters";
 import { EnumSelect, errorOf, Field, FormDialog, TextInput } from "@/components/shell/form";
 import { cellClass, headClass, PageHeader, RecordCount, StatGrid } from "@/components/shell/page-header";
 import { ConfirmDelete, RowActions } from "@/components/shell/row-actions";
 import { useSave } from "@/components/shell/use-save";
-import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { GUILD_STATUS, TIERS } from "@/lib/constants";
@@ -29,10 +28,7 @@ export function GuildsScreen({ page, guilds }: { page: GuildPage; guilds: GuildO
         title="Guilds"
         description="Cadastro das guilds, vagas e bônus de experiência. A ocupação considera apenas membros ativos."
       >
-        <Button onClick={() => setForm("new")}>
-          <Plus />
-          Nova guild
-        </Button>
+        <CreateButton label="Nova guild" onClick={() => setForm("new")} />
       </PageHeader>
       <StatGrid
         items={[

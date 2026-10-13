@@ -8,6 +8,7 @@ import {
   TIPOS_MISSAO,
   TIERS,
 } from "@/lib/constants";
+import { PERMISSOES } from "@/lib/permissions";
 
 const dateField = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Informe a data.");
 const optionalText = z.string().trim();
@@ -75,7 +76,7 @@ export const missaoSchema = z.object({
   guildId: z.string().trim().min(1, "Selecione a guild."),
   titulo: z.string().trim().min(3, "Informe o título.").max(120, "Título muito longo."),
   tipo: z.enum(TIPOS_MISSAO, "Selecione o tipo."),
-  responsavelId: optionalId,
+  responsavelIds: z.array(z.string().trim().min(1)).default([]),
   prioridade: z.enum(PRIORIDADES, "Selecione a prioridade."),
   status: z.enum(TAREFA_STATUS, "Selecione o status."),
   pontos: z.coerce.number().int("Use um número inteiro.").min(0, "Pontos não pode ser negativo."),
@@ -95,14 +96,18 @@ const nomeUsuario = z.string().trim().min(2, "Informe o nome.").max(80, "Nome mu
 
 const senhaNova = z.string().min(8, "A senha precisa ter pelo menos 8 caracteres.").max(72, "Senha muito longa.");
 
+const permissaoField = z.enum(PERMISSOES, "Selecione a permissão.");
+
 export const usuarioCreateSchema = z.object({
   nome: nomeUsuario,
   usuario: usuarioLogin,
+  permissao: permissaoField,
 });
 
 export const usuarioUpdateSchema = z.object({
   nome: nomeUsuario,
   usuario: usuarioLogin,
+  permissao: permissaoField.optional(),
   senha: z
     .string()
     .max(72, "Senha muito longa.")

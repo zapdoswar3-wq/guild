@@ -1,7 +1,7 @@
 "use client";
 
-import { Plus } from "lucide-react";
 import { useState } from "react";
+import { CreateButton } from "@/components/shell/access";
 import { createObjetivo, deleteObjetivo, updateObjetivo } from "@/actions/objetivos";
 import { PriorityBadge, ProgressBar, StatusBadge } from "@/components/shell/badges";
 import { FilterBar } from "@/components/shell/filters";
@@ -9,7 +9,6 @@ import { EnumSelect, errorOf, Field, FormDialog, MemberSelect, TextInput } from 
 import { cellClass, headClass, PageHeader, RecordCount, StatGrid } from "@/components/shell/page-header";
 import { ConfirmDelete, RowActions } from "@/components/shell/row-actions";
 import { useSave } from "@/components/shell/use-save";
-import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { OBJETIVO_STATUS, PRIORIDADES } from "@/lib/constants";
@@ -30,10 +29,7 @@ export function ObjetivosScreen({ page, options }: { page: ObjetivoPage; options
         title="Objetivos"
         description="O status não é digitado: concluído ao bater a meta, atrasado se o prazo passou, em andamento se já há realizado."
       >
-        <Button onClick={() => setForm("new")}>
-          <Plus />
-          Novo objetivo
-        </Button>
+        <CreateButton label="Novo objetivo" onClick={() => setForm("new")} />
       </PageHeader>
       <StatGrid
         items={[

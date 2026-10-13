@@ -1,7 +1,7 @@
 "use client";
 
-import { Plus } from "lucide-react";
 import { useState } from "react";
+import { CreateButton } from "@/components/shell/access";
 import { createCacada, deleteCacada, updateCacada } from "@/actions/cacadas";
 import { ProgressBar, StatusBadge } from "@/components/shell/badges";
 import { DateFilter, FilterBar } from "@/components/shell/filters";
@@ -9,7 +9,6 @@ import { EnumSelect, errorOf, Field, FormDialog, MemberSelect, TextInput } from 
 import { cellClass, headClass, PageHeader, RecordCount, StatGrid } from "@/components/shell/page-header";
 import { ConfirmDelete, RowActions } from "@/components/shell/row-actions";
 import { useSave } from "@/components/shell/use-save";
-import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { TAREFA_STATUS } from "@/lib/constants";
@@ -29,10 +28,7 @@ export function CacadasScreen({ page, options, data }: { page: CacadaPage; optio
         description="Caçadas da data selecionada. Os pontos só entram no desempenho quando o status é Concluída."
       >
         <DateFilter fallback={data} />
-        <Button onClick={() => setForm("new")}>
-          <Plus />
-          Nova caçada
-        </Button>
+        <CreateButton label="Nova caçada" onClick={() => setForm("new")} />
       </PageHeader>
       <StatGrid
         items={[

@@ -1,17 +1,17 @@
 "use client";
 
-import { Plus } from "lucide-react";
 import { useState } from "react";
 import { createUsuario, deleteUsuario, updateUsuario } from "@/actions/usuarios";
+import { CreateButton } from "@/components/shell/access";
 import { StatusBadge } from "@/components/shell/badges";
 import { FilterBar } from "@/components/shell/filters";
-import { errorOf, Field, FormDialog, TextInput } from "@/components/shell/form";
+import { EnumSelect, errorOf, Field, FormDialog, TextInput } from "@/components/shell/form";
 import { cellClass, headClass, PageHeader, RecordCount, StatGrid } from "@/components/shell/page-header";
 import { ConfirmDelete, RowActions } from "@/components/shell/row-actions";
 import { useSave } from "@/components/shell/use-save";
-import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDate, formatInteger } from "@/lib/format";
+import { PERMISSOES, PERMISSAO_LABEL, permissaoLabel } from "@/lib/permissions";
 import type { UsuarioPage, UsuarioRow } from "@/lib/types";
 
 export function UsuariosScreen({ page }: { page: UsuarioPage }) {
@@ -24,12 +24,9 @@ export function UsuariosScreen({ page }: { page: UsuarioPage }) {
       <PageHeader
         section="SISTEMA"
         title="Usuários"
-        description="Contas novas entram com a senha 123456 e trocam essa senha no primeiro acesso."
+        description="Contas novas entram com a senha 123456 e trocam essa senha no primeiro acesso. O nível limita visualizar, editar, incluir e excluir."
       >
-        <Button onClick={() => setForm("new")}>
-          <Plus />
-          Novo usuário
-        </Button>
+        <CreateButton label="Novo usuário" onClick={() => setForm("new")} />
       </PageHeader>
       <StatGrid
         items={[
@@ -65,7 +62,7 @@ export function UsuariosScreen({ page }: { page: UsuarioPage }) {
                   <TableCell className={`${cellClass} font-medium`}>{row.nome}</TableCell>
                   <TableCell className={cellClass}>{row.usuario}</TableCell>
                   <TableCell className={cellClass}>
-                    <StatusBadge value={row.admin ? "Administrador" : "Usuário"} />
+                    <StatusBadge value={permissaoLabel(row)} />
                   </TableCell>
                   <TableCell className={cellClass}>
                     <StatusBadge value={row.deveTrocarSenha ? "Pendente" : "Liberado"} />
@@ -104,6 +101,7 @@ function UsuarioDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { pending, errors, save } = useSave(() => onOpenChange(false));
+  const [permissao, setPermissao] = useState(usuario?.permissao || "visualizar");
 
   return (
     <FormDialog
@@ -113,7 +111,7 @@ function UsuarioDialog({
       description={
         usuario
           ? "Atualize o nome e o usuário. A senha só muda se você preencher o campo."
-          : "A senha inicial será 123456. No primeiro acesso, a pessoa define uma nova senha."
+          : "A senha inicial será 123456. No primeiro acesso, a pessoa define uma nova senha. O nível escolhido vale para guilds, membros, missões, caçadas, objetivos e talentos."
       }
       pending={pending}
       onSubmit={(formData) =>
@@ -129,6 +127,16 @@ function UsuarioDialog({
       <Field label="Usuário" error={errorOf(errors, "usuario")}>
         <TextInput name="usuario" defaultValue={usuario?.usuario ?? ""} autoComplete="off" />
       </Field>
+      {usuario?.admin ? null : (
+        <Field className="grid gap-1.5 sm:col-span-2" label="Permissão" error={errorOf(errors, "permissao")}>
+          <EnumSelect
+            name="permissao"
+            value={permissao}
+            onChange={setPermissao}
+            options={PERMISSOES.map((item) => ({ value: item, label: PERMISSAO_LABEL[item] }))}
+          />
+        </Field>
+      )}
       {usuario ? (
         <Field className="grid gap-1.5 sm:col-span-2" label="Nova senha" error={errorOf(errors, "senha")}>
           <TextInput

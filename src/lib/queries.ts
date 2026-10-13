@@ -2,6 +2,7 @@ import { bonusValor, progressPercent } from "@/lib/format";
 import { matches, type Filters } from "@/lib/filters";
 import { dayBounds, todayISO, toDateInput } from "@/lib/dates";
 import { prisma } from "@/lib/prisma";
+import { permissaoLabel } from "@/lib/permissions";
 import { isTarefaAberta, objetivoStatus, pontosContabilizados } from "@/lib/status";
 import type {
   AppOptions,
@@ -85,16 +86,17 @@ export async function getMembroPage(filters: Filters): Promise<MembroPage> {
   const membros = await prisma.membro.findMany({
     include: {
       guild: { select: { nome: true } },
-      missoes: { select: { status: true } },
+      missaoResponsaveis: { select: { missao: { select: { status: true } } } },
       cacadas: { select: { status: true } },
     },
     orderBy: { nick: "asc" },
   });
 
   const mapped = membros.map((membro) => {
-    const missoesFeitas = membro.missoes.filter((missao) => missao.status === "Concluída").length;
+    const missoes = membro.missaoResponsaveis.map((item) => item.missao);
+    const missoesFeitas = missoes.filter((missao) => missao.status === "Concluída").length;
     const cacadasFeitas = membro.cacadas.filter((cacada) => cacada.status === "Concluída").length;
-    const total = membro.missoes.length + membro.cacadas.length;
+    const total = missoes.length + membro.cacadas.length;
     const feitas = missoesFeitas + cacadasFeitas;
     return {
       id: membro.id,
@@ -107,7 +109,7 @@ export async function getMembroPage(filters: Filters): Promise<MembroPage> {
       entrada: toDateInput(membro.entrada),
       status: membro.status,
       discord: membro.discord,
-      missoesAbertas: membro.missoes.filter((missao) => isTarefaAberta(missao.status)).length,
+      missoesAbertas: missoes.filter((missao) => isTarefaAberta(missao.status)).length,
       missoesFeitas,
       cacadasFeitas,
       taxa: total === 0 ? 0 : (feitas / total) * 100,
@@ -274,7 +276,7 @@ export async function getMissaoPage(filters: Filters, data: string): Promise<Mis
       where: { data: bounds },
       include: {
         guild: { select: { nome: true } },
-        responsavel: { select: { nick: true } },
+        responsaveis: { include: { membro: { select: { id: true, nick: true } } } },
       },
       orderBy: { titulo: "asc" },
     }),
@@ -288,8 +290,8 @@ export async function getMissaoPage(filters: Filters, data: string): Promise<Mis
     guildNome: missao.guild.nome,
     titulo: missao.titulo,
     tipo: missao.tipo,
-    responsavelId: missao.responsavelId,
-    responsavelNick: missao.responsavel?.nick ?? null,
+    responsavelIds: missao.responsaveis.map((item) => item.membro.id),
+    responsavelNicks: missao.responsaveis.map((item) => item.membro.nick),
     prioridade: missao.prioridade,
     status: missao.status,
     pontos: missao.pontos,
@@ -301,7 +303,7 @@ export async function getMissaoPage(filters: Filters, data: string): Promise<Mis
     rows: mapped.filter((missao) => {
       if (filters.guild && missao.guildId !== filters.guild) return false;
       if (filters.status && missao.status !== filters.status) return false;
-      return matches(filters.q, missao.titulo, missao.tipo, missao.responsavelNick, missao.obs);
+      return matches(filters.q, missao.titulo, missao.tipo, missao.responsavelNicks.join(" "), missao.obs);
     }),
     summary: {
       noDia: mapped.length,
@@ -335,7 +337,10 @@ export async function getOverview(data: string): Promise<OverviewData> {
     }),
     prisma.missao.findMany({
       where: { data: bounds },
-      include: { guild: { select: { nome: true } } },
+      include: {
+        guild: { select: { nome: true } },
+        responsaveis: { include: { membro: { select: { nick: true } } } },
+      },
     }),
     prisma.cacada.findMany({ where: { data: bounds } }),
     prisma.objetivo.findMany(),
@@ -364,10 +369,20 @@ export async function getOverview(data: string): Promise<OverviewData> {
     },
     pendentes: missoes
       .filter((missao) => missao.status === "Pendente")
-      .map((missao) => ({ id: missao.id, titulo: missao.titulo, guild: missao.guild.nome })),
+      .map((missao) => ({
+        id: missao.id,
+        titulo: missao.titulo,
+        guild: missao.guild.nome,
+        responsaveis: missao.responsaveis.map((item) => item.membro.nick).join(", "),
+      })),
     falhas: missoes
       .filter((missao) => missao.status === "Falhou")
-      .map((missao) => ({ id: missao.id, titulo: missao.titulo, guild: missao.guild.nome })),
+      .map((missao) => ({
+        id: missao.id,
+        titulo: missao.titulo,
+        guild: missao.guild.nome,
+        responsaveis: missao.responsaveis.map((item) => item.membro.nick).join(", "),
+      })),
     guilds: guilds.map((guild) => {
       const missoesGuild = missoes.filter((missao) => missao.guildId === guild.id);
       const cacadasGuild = cacadas.filter((cacada) => cacada.guildId === guild.id);
@@ -405,13 +420,16 @@ export async function getUsuarios(filters: Filters, currentUsuario: string): Pro
     nome: user.nome,
     usuario: user.usuario,
     admin: user.admin,
+    permissao: user.permissao,
     deveTrocarSenha: user.deveTrocarSenha,
     criadoEm: todayISO(user.criadoEm),
   }));
   const admins = rows.filter((row) => row.admin).length;
 
   return {
-    rows: rows.filter((row) => matches(filters.q, row.nome, row.usuario, row.admin ? "Administrador" : "Usuário")),
+    rows: rows.filter((row) =>
+      matches(filters.q, row.nome, row.usuario, permissaoLabel(row), row.admin ? "Administrador" : "Usuário"),
+    ),
     summary: { total: rows.length, admins, contas: rows.length - admins },
     currentUsuario,
   };

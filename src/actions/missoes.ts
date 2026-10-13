@@ -2,23 +2,41 @@
 
 import { parseDateInput } from "@/lib/dates";
 import { failure, formDataToObject, parseInput, revalidateApp } from "@/lib/action-utils";
-import { requireUser } from "@/lib/session";
-import { assertGuildExists, assertMemberInGuild } from "@/lib/guards";
+import { assertCan } from "@/lib/session";
+import { assertGuildExists, assertMembersInGuild } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
 import { missaoSchema } from "@/lib/validators";
 
+function missaoInput(formData: FormData) {
+  const responsavelIds = [
+    ...new Set(
+      formData
+        .getAll("responsavelIds")
+        .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+        .map((value) => value.trim()),
+    ),
+  ];
+  return { ...formDataToObject(formData), responsavelIds };
+}
+
 export async function createMissao(formData: FormData) {
-  await requireUser();
-  const parsed = parseInput(missaoSchema, formDataToObject(formData));
+  const denied = await assertCan("create");
+  if (denied) return denied;
+  const parsed = parseInput(missaoSchema, missaoInput(formData));
   if (!parsed.ok) return parsed;
-  const guildError = await assertGuildExists(parsed.data.guildId);
+  const { responsavelIds, ...data } = parsed.data;
+  const guildError = await assertGuildExists(data.guildId);
   if (guildError) return failure(guildError, "guildId");
-  const memberError = await assertMemberInGuild(parsed.data.responsavelId, parsed.data.guildId);
-  if (memberError) return failure(memberError, "responsavelId");
+  const memberError = await assertMembersInGuild(responsavelIds, data.guildId);
+  if (memberError) return failure(memberError, "responsavelIds");
 
   try {
     await prisma.missao.create({
-      data: { ...parsed.data, data: parseDateInput(parsed.data.data) },
+      data: {
+        ...data,
+        data: parseDateInput(data.data),
+        responsaveis: { create: responsavelIds.map((membroId) => ({ membroId })) },
+      },
     });
     revalidateApp();
     return { ok: true as const };
@@ -29,20 +47,29 @@ export async function createMissao(formData: FormData) {
 }
 
 export async function updateMissao(id: string, formData: FormData) {
-  await requireUser();
-  const parsed = parseInput(missaoSchema, formDataToObject(formData));
+  const denied = await assertCan("edit");
+  if (denied) return denied;
+  const parsed = parseInput(missaoSchema, missaoInput(formData));
   if (!parsed.ok) return parsed;
+  const { responsavelIds, ...data } = parsed.data;
   const current = await prisma.missao.findUnique({ where: { id }, select: { id: true } });
   if (!current) return failure("Registro não encontrado.");
-  const guildError = await assertGuildExists(parsed.data.guildId);
+  const guildError = await assertGuildExists(data.guildId);
   if (guildError) return failure(guildError, "guildId");
-  const memberError = await assertMemberInGuild(parsed.data.responsavelId, parsed.data.guildId);
-  if (memberError) return failure(memberError, "responsavelId");
+  const memberError = await assertMembersInGuild(responsavelIds, data.guildId);
+  if (memberError) return failure(memberError, "responsavelIds");
 
   try {
     await prisma.missao.update({
       where: { id },
-      data: { ...parsed.data, data: parseDateInput(parsed.data.data) },
+      data: {
+        ...data,
+        data: parseDateInput(data.data),
+        responsaveis: {
+          deleteMany: {},
+          create: responsavelIds.map((membroId) => ({ membroId })),
+        },
+      },
     });
     revalidateApp();
     return { ok: true as const };
@@ -53,7 +80,8 @@ export async function updateMissao(id: string, formData: FormData) {
 }
 
 export async function deleteMissao(id: string) {
-  await requireUser();
+  const denied = await assertCan("delete");
+  if (denied) return denied;
   const current = await prisma.missao.findUnique({ where: { id }, select: { id: true } });
   if (!current) return failure("Registro não encontrado.");
   try {

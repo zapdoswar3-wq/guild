@@ -2,12 +2,13 @@
 
 import { parseDateInput } from "@/lib/dates";
 import { duplicateMessage, failure, formDataToObject, parseInput, revalidateApp } from "@/lib/action-utils";
-import { requireUser } from "@/lib/session";
+import { assertCan } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { guildSchema } from "@/lib/validators";
 
 export async function createGuild(formData: FormData) {
-  await requireUser();
+  const denied = await assertCan("create");
+  if (denied) return denied;
   const parsed = parseInput(guildSchema, formDataToObject(formData));
   if (!parsed.ok) return parsed;
 
@@ -26,7 +27,8 @@ export async function createGuild(formData: FormData) {
 }
 
 export async function updateGuild(id: string, formData: FormData) {
-  await requireUser();
+  const denied = await assertCan("edit");
+  if (denied) return denied;
   const parsed = parseInput(guildSchema, formDataToObject(formData));
   if (!parsed.ok) return parsed;
 
@@ -49,7 +51,8 @@ export async function updateGuild(id: string, formData: FormData) {
 }
 
 export async function deleteGuild(id: string) {
-  await requireUser();
+  const denied = await assertCan("delete");
+  if (denied) return denied;
   const current = await prisma.guild.findUnique({ where: { id }, select: { id: true } });
   if (!current) return failure("Registro não encontrado.");
 

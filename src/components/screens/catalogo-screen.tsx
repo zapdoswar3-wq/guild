@@ -1,14 +1,13 @@
 "use client";
 
-import { Plus } from "lucide-react";
 import { useState } from "react";
+import { CreateButton } from "@/components/shell/access";
 import { createCatalogo, deleteCatalogo, updateCatalogo } from "@/actions/catalogo";
 import { FilterBar } from "@/components/shell/filters";
 import { errorOf, Field, FormDialog, TextInput } from "@/components/shell/form";
 import { cellClass, headClass, PageHeader, RecordCount, StatGrid } from "@/components/shell/page-header";
 import { ConfirmDelete, RowActions } from "@/components/shell/row-actions";
 import { useSave } from "@/components/shell/use-save";
-import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDecimal, formatInteger } from "@/lib/format";
@@ -27,10 +26,7 @@ export function CatalogoScreen({ rows }: { rows: CatalogoRow[] }) {
         title="Configurações"
         description="Catálogo de talentos usado pelas guilds. O bônus e a unidade mostrados na tela de talentos vêm daqui."
       >
-        <Button onClick={() => setForm("new")}>
-          <Plus />
-          Novo talento
-        </Button>
+        <CreateButton label="Novo talento" onClick={() => setForm("new")} />
       </PageHeader>
       <StatGrid
         items={[

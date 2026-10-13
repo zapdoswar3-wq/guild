@@ -1,7 +1,7 @@
 "use client";
 
-import { Plus } from "lucide-react";
 import { useState } from "react";
+import { CreateButton } from "@/components/shell/access";
 import { createMembro, deleteMembro, updateMembro } from "@/actions/membros";
 import { StatusBadge } from "@/components/shell/badges";
 import { FilterBar } from "@/components/shell/filters";
@@ -9,7 +9,6 @@ import { EnumSelect, errorOf, Field, FormDialog, TextInput } from "@/components/
 import { cellClass, headClass, PageHeader, RecordCount, StatGrid } from "@/components/shell/page-header";
 import { ConfirmDelete, RowActions } from "@/components/shell/row-actions";
 import { useSave } from "@/components/shell/use-save";
-import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CARGOS, MEMBRO_STATUS } from "@/lib/constants";
 import { todayISO } from "@/lib/dates";
@@ -28,10 +27,7 @@ export function MembrosScreen({ page, options }: { page: MembroPage; options: Ap
         title="Membros"
         description="Treinadores das guilds. Missões abertas, missões feitas, caçadas feitas e a taxa de conclusão são calculadas."
       >
-        <Button onClick={() => setForm("new")}>
-          <Plus />
-          Novo membro
-        </Button>
+        <CreateButton label="Novo membro" onClick={() => setForm("new")} />
       </PageHeader>
       <StatGrid
         items={[

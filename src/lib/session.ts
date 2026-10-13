@@ -1,5 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { failure, type ActionResult } from "@/lib/action-utils";
+import { accessFrom } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { createSessionToken, readSessionToken, SESSION_COOKIE, type SessionUser } from "@/lib/session-token";
 
@@ -31,7 +33,7 @@ async function loadUser() {
   if (!session) return null;
   const user = await prisma.usuario.findUnique({
     where: { usuario: session.usuario },
-    select: { id: true, usuario: true, nome: true, admin: true, deveTrocarSenha: true },
+    select: { id: true, usuario: true, nome: true, admin: true, permissao: true, deveTrocarSenha: true },
   });
   if (!user) {
     await clearSessionCookie();
@@ -58,4 +60,13 @@ export async function requireAdmin() {
   const user = await requireUser();
   if (!user.admin) redirect("/visao-geral");
   return user;
+}
+
+export async function assertCan(kind: "create" | "edit" | "delete"): Promise<ActionResult | null> {
+  const user = await requireUser();
+  const access = accessFrom(user);
+  if (kind === "edit" && !access.canEdit) return failure("Sua permissão permite somente visualizar.");
+  if (kind === "create" && !access.canCreate) return failure("Sua permissão não permite incluir registros.");
+  if (kind === "delete" && !access.canDelete) return failure("Sua permissão não permite excluir registros.");
+  return null;
 }

@@ -31,9 +31,9 @@ const TONES: Record<Tone, string> = {
 };
 
 export function statusTone(status: string): string {
-  if (["Concluída", "Concluído", "Ativo", "Ativa", "Administrador", "Liberado"].includes(status)) return TONES.green;
-  if (["Em andamento", "Recrutando"].includes(status)) return TONES.blue;
-  if (["Pendente", "Afastado"].includes(status)) return TONES.amber;
+  if (["Concluída", "Concluído", "Ativo", "Ativa", "Administrador", "Liberado", "Excluir"].includes(status)) return TONES.green;
+  if (["Em andamento", "Recrutando", "Editar"].includes(status)) return TONES.blue;
+  if (["Pendente", "Afastado", "Incluir"].includes(status)) return TONES.amber;
   if (["Falhou", "Atrasado"].includes(status)) return TONES.red;
   return TONES.gray;
 }

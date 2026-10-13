@@ -17,6 +17,7 @@ export async function createUsuario(formData: FormData) {
         nome: parsed.data.nome,
         usuario: parsed.data.usuario,
         senhaHash: await hashPassword(SENHA_PADRAO),
+        permissao: parsed.data.permissao,
         deveTrocarSenha: true,
       },
     });
@@ -36,6 +37,7 @@ export async function updateUsuario(id: string, formData: FormData) {
   if (!parsed.ok) return parsed;
   const current = await prisma.usuario.findUnique({ where: { id }, select: { id: true, usuario: true, admin: true } });
   if (!current) return failure("Registro não encontrado.");
+  if (!current.admin && !parsed.data.permissao) return failure("Selecione a permissão.", "permissao");
 
   try {
     const saved = await prisma.usuario.update({
@@ -43,6 +45,7 @@ export async function updateUsuario(id: string, formData: FormData) {
       data: {
         nome: parsed.data.nome,
         usuario: parsed.data.usuario,
+        ...(current.admin || !parsed.data.permissao ? {} : { permissao: parsed.data.permissao }),
         ...(parsed.data.senha
           ? {
               senhaHash: await hashPassword(parsed.data.senha),

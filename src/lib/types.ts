@@ -160,8 +160,8 @@ export type MissaoRow = {
   guildNome: string;
   titulo: string;
   tipo: string;
-  responsavelId: string | null;
-  responsavelNick: string | null;
+  responsavelIds: string[];
+  responsavelNicks: string[];
   prioridade: string;
   status: string;
   pontos: number;
@@ -184,6 +184,7 @@ export type UsuarioRow = {
   nome: string;
   usuario: string;
   admin: boolean;
+  permissao: string;
   deveTrocarSenha: boolean;
   criadoEm: string;
 };
@@ -228,6 +229,7 @@ export type OverviewAlert = {
   id: string;
   titulo: string;
   guild: string;
+  responsaveis: string;
 };
 
 export type OverviewData = {

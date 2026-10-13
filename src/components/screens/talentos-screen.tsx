@@ -1,7 +1,7 @@
 "use client";
 
-import { Plus } from "lucide-react";
 import { useState } from "react";
+import { CreateButton } from "@/components/shell/access";
 import { createTalentoGuild, deleteTalentoGuild, updateTalentoGuild } from "@/actions/talentos";
 import { ProgressBar } from "@/components/shell/badges";
 import { FilterBar } from "@/components/shell/filters";
@@ -9,7 +9,6 @@ import { EnumSelect, errorOf, Field, FormDialog, TextInput } from "@/components/
 import { cellClass, headClass, PageHeader, RecordCount, StatGrid } from "@/components/shell/page-header";
 import { ConfirmDelete, RowActions } from "@/components/shell/row-actions";
 import { useSave } from "@/components/shell/use-save";
-import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TALENTO_NIVEL_STATUS } from "@/lib/constants";
 import { bonusValor, formatDecimal, formatInteger } from "@/lib/format";
@@ -27,10 +26,7 @@ export function TalentosScreen({ page, options }: { page: TalentoPage; options: 
         title="Talentos"
         description="Nível de cada talento por guild. O bônus atual é nível × bônus por nível do catálogo."
       >
-        <Button onClick={() => setForm("new")}>
-          <Plus />
-          Novo talento
-        </Button>
+        <CreateButton label="Novo talento" onClick={() => setForm("new")} />
       </PageHeader>
       <StatGrid
         items={[

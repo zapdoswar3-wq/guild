@@ -15,24 +15,32 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
+import { useAccess } from "@/components/shell/access";
 
 type ActionResult = { ok: true } | { ok: false; message: string };
 
 export function RowActions({ onEdit, onDelete }: { onEdit: () => void; onDelete?: () => void }) {
+  const { canEdit, canDelete } = useAccess();
+  const edit = canEdit ? onEdit : undefined;
+  const remove = canDelete ? onDelete : undefined;
+  if (!edit && !remove) return null;
+
   return (
     <div className="flex justify-end gap-1">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button type="button" variant="ghost" size="icon-sm" aria-label="Editar" onClick={onEdit}>
-            <Pencil />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Editar</TooltipContent>
-      </Tooltip>
-      {onDelete ? (
+      {edit ? (
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button type="button" variant="ghost" size="icon-sm" aria-label="Excluir" onClick={onDelete}>
+            <Button type="button" variant="ghost" size="icon-sm" aria-label="Editar" onClick={edit}>
+              <Pencil />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Editar</TooltipContent>
+        </Tooltip>
+      ) : null}
+      {remove ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button type="button" variant="ghost" size="icon-sm" aria-label="Excluir" onClick={remove}>
               <Trash2 />
             </Button>
           </TooltipTrigger>

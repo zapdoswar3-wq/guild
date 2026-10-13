@@ -1,15 +1,14 @@
 "use client";
 
-import { Plus } from "lucide-react";
 import { useState } from "react";
 import { createMissao, deleteMissao, updateMissao } from "@/actions/missoes";
+import { CreateButton } from "@/components/shell/access";
 import { PriorityBadge, StatusBadge } from "@/components/shell/badges";
 import { DateFilter, FilterBar } from "@/components/shell/filters";
-import { EnumSelect, errorOf, Field, FormDialog, MemberSelect, TextInput } from "@/components/shell/form";
+import { EnumSelect, errorOf, Field, FormDialog, MemberMultiSelect, TextInput } from "@/components/shell/form";
 import { cellClass, headClass, PageHeader, RecordCount, StatGrid } from "@/components/shell/page-header";
 import { ConfirmDelete, RowActions } from "@/components/shell/row-actions";
 import { useSave } from "@/components/shell/use-save";
-import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { PRIORIDADES, TAREFA_STATUS, TIPOS_MISSAO } from "@/lib/constants";
@@ -29,10 +28,7 @@ export function MissoesScreen({ page, options, data }: { page: MissaoPage; optio
         description="Missões da data selecionada. Os pontos só entram no desempenho quando o status é Concluída."
       >
         <DateFilter fallback={data} />
-        <Button onClick={() => setForm("new")}>
-          <Plus />
-          Nova missão
-        </Button>
+        <CreateButton label="Nova missão" onClick={() => setForm("new")} />
       </PageHeader>
       <StatGrid
         items={[
@@ -47,7 +43,7 @@ export function MissoesScreen({ page, options, data }: { page: MissaoPage; optio
         <Table className="min-w-[1100px]">
           <TableHeader>
             <TableRow>
-              {["Data", "Guild", "Título", "Tipo", "Responsável", "Prioridade", "Status", "Pontos", "XP"].map((label) => (
+              {["Data", "Guild", "Título", "Tipo", "Responsáveis", "Prioridade", "Status", "Pontos", "XP"].map((label) => (
                 <TableHead key={label} className={headClass}>
                   {label}
                 </TableHead>
@@ -69,7 +65,9 @@ export function MissoesScreen({ page, options, data }: { page: MissaoPage; optio
                   <TableCell className={cellClass}>{missao.guildNome}</TableCell>
                   <TableCell className={`${cellClass} font-medium whitespace-normal`}>{missao.titulo}</TableCell>
                   <TableCell className={cellClass}>{missao.tipo}</TableCell>
-                  <TableCell className={cellClass}>{missao.responsavelNick ?? "—"}</TableCell>
+                  <TableCell className={`${cellClass} whitespace-normal`}>
+                    {missao.responsavelNicks.length ? missao.responsavelNicks.join(", ") : "—"}
+                  </TableCell>
                   <TableCell className={cellClass}>
                     <PriorityBadge value={missao.prioridade} />
                   </TableCell>
@@ -120,7 +118,7 @@ function MissaoDialog({
 }) {
   const { pending, errors, save } = useSave(() => onOpenChange(false));
   const [guildId, setGuildId] = useState(missao?.guildId ?? "");
-  const [responsavelId, setResponsavelId] = useState(missao?.responsavelId ?? "");
+  const [responsavelIds, setResponsavelIds] = useState(missao?.responsavelIds ?? []);
   const [tipo, setTipo] = useState(missao?.tipo ?? "Batalha");
   const [prioridade, setPrioridade] = useState(missao?.prioridade ?? "Média");
   const [status, setStatus] = useState(missao?.status ?? "Pendente");
@@ -148,7 +146,7 @@ function MissaoDialog({
           value={guildId}
           onChange={(value) => {
             setGuildId(value);
-            setResponsavelId("");
+            setResponsavelIds([]);
           }}
           options={options.guilds.map((guild) => ({ value: guild.id, label: guild.nome }))}
           placeholder="Selecione a guild"
@@ -160,8 +158,8 @@ function MissaoDialog({
       <Field label="Tipo" error={errorOf(errors, "tipo")}>
         <EnumSelect name="tipo" value={tipo} onChange={setTipo} options={TIPOS_MISSAO} />
       </Field>
-      <Field label="Responsável" error={errorOf(errors, "responsavelId")}>
-        <MemberSelect guildId={guildId} members={options.members} value={responsavelId} onChange={setResponsavelId} />
+      <Field className="grid gap-1.5 sm:col-span-2" label="Responsáveis" error={errorOf(errors, "responsavelIds")}>
+        <MemberMultiSelect guildId={guildId} members={options.members} value={responsavelIds} onChange={setResponsavelIds} />
       </Field>
       <Field label="Prioridade" error={errorOf(errors, "prioridade")}>
         <EnumSelect name="prioridade" value={prioridade} onChange={setPrioridade} options={PRIORIDADES} />

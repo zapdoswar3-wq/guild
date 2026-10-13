@@ -116,7 +116,7 @@ function AlertList({
 }: {
   title: string;
   empty: string;
-  items: { id: string; titulo: string; guild: string }[];
+  items: { id: string; titulo: string; guild: string; responsaveis: string }[];
 }) {
   return (
     <article className="rounded-xl border border-[#262A36] bg-[#1A1D27] p-4">
@@ -126,8 +126,13 @@ function AlertList({
       ) : (
         <ul className="mt-3 grid gap-2">
           {items.map((item) => (
-            <li key={item.id} className="flex items-center justify-between gap-3 text-sm">
-              <span className="text-[#E6E8EF]">{item.titulo}</span>
+            <li key={item.id} className="flex items-start justify-between gap-3 text-sm">
+              <span className="text-[#E6E8EF]">
+                {item.titulo}
+                <span className="mt-0.5 block text-xs text-[#8B91A7]">
+                  {item.responsaveis || "Sem responsável"}
+                </span>
+              </span>
               <span className="shrink-0 text-[#8B91A7]">{item.guild}</span>
             </li>
           ))}

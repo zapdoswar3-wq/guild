@@ -41,7 +41,17 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function AppShell({ children, usuario, admin }: { children: React.ReactNode; usuario: string; admin: boolean }) {
+export function AppShell({
+  children,
+  usuario,
+  admin,
+  papel,
+}: {
+  children: React.ReactNode;
+  usuario: string;
+  admin: boolean;
+  papel: string;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -105,6 +115,7 @@ export function AppShell({ children, usuario, admin }: { children: React.ReactNo
           <p className="text-xs text-[#8B91A7]">
             Conectado como <span className="font-medium text-[#E6E8EF]">{usuario}</span>
           </p>
+          <p className="mt-1 text-xs text-[#8B91A7]">{papel}</p>
           <form action={logout} className="mt-2">
             <button type="submit" className="text-xs font-medium text-[#8B91A7] hover:text-[#E6E8EF]">
               Sair
