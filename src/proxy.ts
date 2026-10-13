@@ -3,6 +3,9 @@ import { readSessionToken, SESSION_COOKIE } from "@/lib/session-token";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    return privateResponse(NextResponse.next());
+  }
   const session = await readSessionToken(request.cookies.get(SESSION_COOKIE)?.value);
 
   if (pathname === "/") {

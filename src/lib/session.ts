@@ -20,7 +20,13 @@ export async function setSessionCookie(user: SessionUser) {
 
 export async function clearSessionCookie() {
   const jar = await cookies();
-  jar.delete({ name: SESSION_COOKIE, path: "/" });
+  jar.set(SESSION_COOKIE, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 0,
+  });
 }
 
 export async function getSession() {
