@@ -71,8 +71,8 @@ export async function requireAdmin() {
 export async function assertCan(kind: "create" | "edit" | "delete"): Promise<ActionResult | null> {
   const user = await requireUser();
   const access = accessFrom(user);
-  if (kind === "edit" && !access.canEdit) return failure("Sua permissão permite somente visualizar.");
-  if (kind === "create" && !access.canCreate) return failure("Sua permissão não permite incluir registros.");
-  if (kind === "delete" && !access.canDelete) return failure("Sua permissão não permite excluir registros.");
+  if (kind === "edit" && !access.canEdit) return failure("Sua conta não tem permissão para editar.");
+  if (kind === "create" && !access.canCreate) return failure("Sua conta não tem permissão para incluir.");
+  if (kind === "delete" && !access.canDelete) return failure("Sua conta não tem permissão para excluir.");
   return null;
 }

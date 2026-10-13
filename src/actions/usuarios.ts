@@ -6,9 +6,16 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin, setSessionCookie } from "@/lib/session";
 import { usuarioCreateSchema, usuarioUpdateSchema } from "@/lib/validators";
 
+function usuarioInput(formData: FormData) {
+  return {
+    ...formDataToObject(formData),
+    permissoes: formData.getAll("permissoes").filter((value): value is string => typeof value === "string"),
+  };
+}
+
 export async function createUsuario(formData: FormData) {
   await requireAdmin();
-  const parsed = parseInput(usuarioCreateSchema, formDataToObject(formData));
+  const parsed = parseInput(usuarioCreateSchema, usuarioInput(formData));
   if (!parsed.ok) return parsed;
 
   try {
@@ -17,7 +24,7 @@ export async function createUsuario(formData: FormData) {
         nome: parsed.data.nome,
         usuario: parsed.data.usuario,
         senhaHash: await hashPassword(SENHA_PADRAO),
-        permissao: parsed.data.permissao,
+        permissao: parsed.data.permissoes,
         deveTrocarSenha: true,
       },
     });
@@ -33,11 +40,10 @@ export async function createUsuario(formData: FormData) {
 
 export async function updateUsuario(id: string, formData: FormData) {
   const actor = await requireAdmin();
-  const parsed = parseInput(usuarioUpdateSchema, formDataToObject(formData));
+  const parsed = parseInput(usuarioUpdateSchema, usuarioInput(formData));
   if (!parsed.ok) return parsed;
   const current = await prisma.usuario.findUnique({ where: { id }, select: { id: true, usuario: true, admin: true } });
   if (!current) return failure("Registro não encontrado.");
-  if (!current.admin && !parsed.data.permissao) return failure("Selecione a permissão.", "permissao");
 
   try {
     const saved = await prisma.usuario.update({
@@ -45,7 +51,7 @@ export async function updateUsuario(id: string, formData: FormData) {
       data: {
         nome: parsed.data.nome,
         usuario: parsed.data.usuario,
-        ...(current.admin || !parsed.data.permissao ? {} : { permissao: parsed.data.permissao }),
+        ...(current.admin ? {} : { permissao: parsed.data.permissoes }),
         ...(parsed.data.senha
           ? {
               senhaHash: await hashPassword(parsed.data.senha),

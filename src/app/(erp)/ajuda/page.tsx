@@ -4,7 +4,7 @@ const SECOES = [
   {
     titulo: "Acesso",
     texto:
-      "A home pede usuário e senha antes de abrir o painel. Sem uma sessão válida, as telas de gestão ficam fechadas. O administrador cadastra as contas em Usuários e escolhe o nível: Visualizar, Editar, Incluir ou Excluir. Cada nível inclui o anterior. O botão Sair, no rodapé da barra lateral, encerra a sessão e volta para a home.",
+      "A home pede usuário e senha antes de abrir o painel. Sem uma sessão válida, as telas de gestão ficam fechadas. O administrador cadastra as contas em Usuários e marca, em qualquer combinação, Visualizar, Editar, Incluir e Excluir. O botão Sair, no rodapé da barra lateral, encerra a sessão e volta para a home.",
   },
   {
     titulo: "Visão geral",
@@ -44,7 +44,7 @@ const SECOES = [
   {
     titulo: "Usuários",
     texto:
-      "Somente o administrador vê esta tela. A conta nova entra com a senha padrão 123456 e, no primeiro acesso, a pessoa precisa definir outra senha. O nível define o que a conta pode fazer no restante do sistema: Visualizar, Editar, Incluir ou Excluir. Na edição, a senha pode ficar em branco para ser mantida. A conta de administrador não pode ser excluída.",
+      "Somente o administrador vê esta tela. A conta nova entra com a senha padrão 123456 e, no primeiro acesso, a pessoa precisa definir outra senha. As caixas Visualizar, Editar, Incluir e Excluir são independentes e podem ser marcadas juntas. Na edição, a senha pode ficar em branco para ser mantida. A conta de administrador não pode ser excluída.",
   },
   {
     titulo: "Configurações",

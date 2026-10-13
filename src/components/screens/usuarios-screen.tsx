@@ -5,13 +5,13 @@ import { createUsuario, deleteUsuario, updateUsuario } from "@/actions/usuarios"
 import { CreateButton } from "@/components/shell/access";
 import { StatusBadge } from "@/components/shell/badges";
 import { FilterBar } from "@/components/shell/filters";
-import { EnumSelect, errorOf, Field, FormDialog, TextInput } from "@/components/shell/form";
+import { errorOf, Field, FormDialog, TextInput } from "@/components/shell/form";
 import { cellClass, headClass, PageHeader, RecordCount, StatGrid } from "@/components/shell/page-header";
 import { ConfirmDelete, RowActions } from "@/components/shell/row-actions";
 import { useSave } from "@/components/shell/use-save";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDate, formatInteger } from "@/lib/format";
-import { PERMISSOES, PERMISSAO_LABEL, permissaoLabel } from "@/lib/permissions";
+import { parsePermissoes, PERMISSOES, PERMISSAO_LABEL, permissaoLabel, type Permissao } from "@/lib/permissions";
 import type { UsuarioPage, UsuarioRow } from "@/lib/types";
 
 export function UsuariosScreen({ page }: { page: UsuarioPage }) {
@@ -24,7 +24,7 @@ export function UsuariosScreen({ page }: { page: UsuarioPage }) {
       <PageHeader
         section="SISTEMA"
         title="Usuários"
-        description="Contas novas entram com a senha 123456 e trocam essa senha no primeiro acesso. O nível limita visualizar, editar, incluir e excluir."
+        description="Contas novas entram com a senha 123456 e trocam essa senha no primeiro acesso. Marque visualizar, editar, incluir e excluir em qualquer combinação."
       >
         <CreateButton label="Novo usuário" onClick={() => setForm("new")} />
       </PageHeader>
@@ -62,7 +62,7 @@ export function UsuariosScreen({ page }: { page: UsuarioPage }) {
                   <TableCell className={`${cellClass} font-medium`}>{row.nome}</TableCell>
                   <TableCell className={cellClass}>{row.usuario}</TableCell>
                   <TableCell className={cellClass}>
-                    <StatusBadge value={permissaoLabel(row)} />
+                    <PermissaoBadges usuario={row} />
                   </TableCell>
                   <TableCell className={cellClass}>
                     <StatusBadge value={row.deveTrocarSenha ? "Pendente" : "Liberado"} />
@@ -93,6 +93,19 @@ export function UsuariosScreen({ page }: { page: UsuarioPage }) {
   );
 }
 
+function PermissaoBadges({ usuario }: { usuario: UsuarioRow }) {
+  if (usuario.admin) return <StatusBadge value="Administrador" />;
+  const items = parsePermissoes(usuario.permissao);
+  if (items.length === 0) return <StatusBadge value={permissaoLabel(usuario)} />;
+  return (
+    <span className="flex flex-wrap gap-1">
+      {items.map((item) => (
+        <StatusBadge key={item} value={PERMISSAO_LABEL[item]} />
+      ))}
+    </span>
+  );
+}
+
 function UsuarioDialog({
   usuario,
   onOpenChange,
@@ -101,7 +114,7 @@ function UsuarioDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { pending, errors, save } = useSave(() => onOpenChange(false));
-  const [permissao, setPermissao] = useState(usuario?.permissao || "visualizar");
+  const [permissoes, setPermissoes] = useState<Permissao[]>(() => parsePermissoes(usuario?.permissao || "visualizar"));
 
   return (
     <FormDialog
@@ -111,7 +124,7 @@ function UsuarioDialog({
       description={
         usuario
           ? "Atualize o nome e o usuário. A senha só muda se você preencher o campo."
-          : "A senha inicial será 123456. No primeiro acesso, a pessoa define uma nova senha. O nível escolhido vale para guilds, membros, missões, caçadas, objetivos e talentos."
+          : "A senha inicial será 123456. No primeiro acesso, a pessoa define uma nova senha. As permissões marcadas valem para guilds, membros, missões, caçadas, objetivos e talentos."
       }
       pending={pending}
       onSubmit={(formData) =>
@@ -128,13 +141,30 @@ function UsuarioDialog({
         <TextInput name="usuario" defaultValue={usuario?.usuario ?? ""} autoComplete="off" />
       </Field>
       {usuario?.admin ? null : (
-        <Field className="grid gap-1.5 sm:col-span-2" label="Permissão" error={errorOf(errors, "permissao")}>
-          <EnumSelect
-            name="permissao"
-            value={permissao}
-            onChange={setPermissao}
-            options={PERMISSOES.map((item) => ({ value: item, label: PERMISSAO_LABEL[item] }))}
-          />
+        <Field className="grid gap-1.5 sm:col-span-2" label="Permissões" error={errorOf(errors, "permissoes")}>
+          <div className="grid gap-2 rounded-lg border border-[#262A36] bg-[#0F1117] p-3 sm:grid-cols-2">
+            {permissoes.map((item) => (
+              <input key={item} type="hidden" name="permissoes" value={item} />
+            ))}
+            {PERMISSOES.map((item) => {
+              const checked = permissoes.includes(item);
+              return (
+                <label key={item} className="flex items-center gap-2 text-sm text-[#E6E8EF]">
+                  <input
+                    type="checkbox"
+                    className="size-4 accent-[#6366F1]"
+                    checked={checked}
+                    onChange={() =>
+                      setPermissoes((current) =>
+                        checked ? current.filter((value) => value !== item) : [...current, item],
+                      )
+                    }
+                  />
+                  <span>{PERMISSAO_LABEL[item]}</span>
+                </label>
+              );
+            })}
+          </div>
         </Field>
       )}
       {usuario ? (
