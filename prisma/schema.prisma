@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        String   @id @default(cuid())
+  usuario   String   @unique
+  nome      String
+  senhaHash       String
+  admin           Boolean  @default(false)
+  deveTrocarSenha Boolean  @default(false)
+  criadoEm        DateTime @default(now())
+}
+
+model Guild {
+  id          String         @id @default(cuid())
+  nome        String         @unique
+  lider       String
+  tier        String
+  pontos      Int
+  bonusXp     Decimal
+  vagas       Int
+  status      String
+  criadaEm    DateTime
+  observacoes String         @default("")
+  membros     Membro[]
+  talentos    TalentoGuild[]
+  objetivos   Objetivo[]
+  cacadas     Cacada[]
+  missoes     Missao[]
+}
+
+model Membro {
+  id        String     @id @default(cuid())
+  nick      String     @unique
+  guildId   String
+  guild     Guild      @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  cargo     String
+  nivel     Int
+  pontos    Int
+  entrada   DateTime
+  status    String
+  discord   String     @default("")
+  objetivos Objetivo[]
+  cacadas   Cacada[]
+  missoes   Missao[]
+
+  @@index([guildId])
+}
+
+model TalentoCatalogo {
+  id            String         @id @default(cuid())
+  nome          String         @unique
+  bonusPorNivel Decimal
+  unidade       String
+  nivelMax      Int
+  descricao     String
+  talentos      TalentoGuild[]
+}
+
+model TalentoGuild {
+  id        String          @id @default(cuid())
+  guildId   String
+  talentoId String
+  nivel     Int
+  guild     Guild           @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  talento   TalentoCatalogo @relation(fields: [talentoId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, talentoId])
+  @@index([guildId])
+  @@index([talentoId])
+}
+
+model Objetivo {
+  id            String   @id @default(cuid())
+  guildId       String
+  titulo        String
+  responsavelId String?
+  meta          Float
+  realizado     Float
+  prazo         DateTime
+  prioridade    String
+  recompensa    String   @default("")
+  notas         String   @default("")
+  guild         Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  responsavel   Membro?  @relation(fields: [responsavelId], references: [id], onDelete: SetNull)
+
+  @@index([guildId])
+  @@index([responsavelId])
+}
+
+model Cacada {
+  id            String   @id @default(cuid())
+  data          DateTime
+  guildId       String
+  alvo          String
+  rota          String   @default("")
+  responsavelId String?
+  meta          Int
+  realizado     Int
+  status        String
+  pontos        Int
+  obs           String   @default("")
+  guild         Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  responsavel   Membro?  @relation(fields: [responsavelId], references: [id], onDelete: SetNull)
+
+  @@index([guildId])
+  @@index([data])
+  @@index([responsavelId])
+}
+
+model Missao {
+  id            String   @id @default(cuid())
+  data          DateTime
+  guildId       String
+  titulo        String
+  tipo          String
+  responsavelId String?
+  prioridade    String
+  status        String
+  pontos        Int
+  xp            Int
+  obs           String   @default("")
+  guild         Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  responsavel   Membro?  @relation(fields: [responsavelId], references: [id], onDelete: SetNull)
+
+  @@index([guildId])
+  @@index([data])
+  @@index([responsavelId])
+}

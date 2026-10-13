@@ -1,0 +1,64 @@
+"use server";
+
+import { parseDateInput } from "@/lib/dates";
+import { duplicateMessage, failure, formDataToObject, parseInput, revalidateApp } from "@/lib/action-utils";
+import { requireUser } from "@/lib/session";
+import { prisma } from "@/lib/prisma";
+import { guildSchema } from "@/lib/validators";
+
+export async function createGuild(formData: FormData) {
+  await requireUser();
+  const parsed = parseInput(guildSchema, formDataToObject(formData));
+  if (!parsed.ok) return parsed;
+
+  try {
+    await prisma.guild.create({
+      data: { ...parsed.data, criadaEm: parseDateInput(parsed.data.criadaEm) },
+    });
+    revalidateApp();
+    return { ok: true as const };
+  } catch (error) {
+    const duplicate = duplicateMessage(error, "Já existe uma guild com esse nome.");
+    if (duplicate) return failure(duplicate, "nome");
+    console.error(error);
+    return failure("Não foi possível salvar a guild. Tente novamente.");
+  }
+}
+
+export async function updateGuild(id: string, formData: FormData) {
+  await requireUser();
+  const parsed = parseInput(guildSchema, formDataToObject(formData));
+  if (!parsed.ok) return parsed;
+
+  const current = await prisma.guild.findUnique({ where: { id }, select: { id: true } });
+  if (!current) return failure("Registro não encontrado.");
+
+  try {
+    await prisma.guild.update({
+      where: { id },
+      data: { ...parsed.data, criadaEm: parseDateInput(parsed.data.criadaEm) },
+    });
+    revalidateApp();
+    return { ok: true as const };
+  } catch (error) {
+    const duplicate = duplicateMessage(error, "Já existe uma guild com esse nome.");
+    if (duplicate) return failure(duplicate, "nome");
+    console.error(error);
+    return failure("Não foi possível salvar a guild. Tente novamente.");
+  }
+}
+
+export async function deleteGuild(id: string) {
+  await requireUser();
+  const current = await prisma.guild.findUnique({ where: { id }, select: { id: true } });
+  if (!current) return failure("Registro não encontrado.");
+
+  try {
+    await prisma.guild.delete({ where: { id } });
+    revalidateApp();
+    return { ok: true as const };
+  } catch (error) {
+    console.error(error);
+    return failure("Não foi possível excluir a guild. Tente novamente.");
+  }
+}
