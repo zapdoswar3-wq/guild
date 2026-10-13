@@ -25,7 +25,7 @@ export function MembrosScreen({ page, options }: { page: MembroPage; options: Ap
       <PageHeader
         section="CADASTROS"
         title="Membros"
-        description="Treinadores das guilds. Missões abertas, missões feitas, caçadas feitas e a taxa de conclusão são calculadas."
+        description="Cada membro aparece com a guild em que está. Quem não foi marcado em nenhuma guild fica sem guild."
       >
         <CreateButton label="Novo membro" onClick={() => setForm("new")} />
       </PageHeader>
@@ -66,7 +66,17 @@ export function MembrosScreen({ page, options }: { page: MembroPage; options: Ap
                     <p className="font-medium">{membro.nick}</p>
                     <p className="text-xs text-[#8B91A7]">{membro.discord || "Sem Discord"}</p>
                   </TableCell>
-                  <TableCell className={cellClass}>{membro.guildNome}</TableCell>
+                  <TableCell className={cellClass}>
+                    <span
+                      className={
+                        membro.guildNome
+                          ? "inline-flex rounded-md border border-[#6366F1]/30 bg-[#6366F1]/10 px-2 py-0.5 text-xs font-medium text-[#C7C9FF]"
+                          : "inline-flex rounded-md border border-zinc-500/30 bg-zinc-500/15 px-2 py-0.5 text-xs font-medium text-zinc-300"
+                      }
+                    >
+                      {membro.guildNome ?? "Sem guild"}
+                    </span>
+                  </TableCell>
                   <TableCell className={cellClass}>{membro.cargo}</TableCell>
                   <TableCell className={`${cellClass} tabular-nums`}>{membro.nivel}</TableCell>
                   <TableCell className={`${cellClass} tabular-nums`}>{formatInteger(membro.pontos)}</TableCell>
@@ -115,7 +125,7 @@ function MembroDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { pending, errors, save } = useSave(() => onOpenChange(false));
-  const [guildId, setGuildId] = useState(membro?.guildId ?? guilds[0]?.id ?? "");
+  const [guildId, setGuildId] = useState(membro?.guildId ?? "nenhuma");
   const [cargo, setCargo] = useState(membro?.cargo ?? "Membro");
   const [status, setStatus] = useState(membro?.status ?? "Ativo");
 
@@ -124,7 +134,7 @@ function MembroDialog({
       open
       onOpenChange={onOpenChange}
       title={membro ? "Editar membro" : "Novo membro"}
-      description="O nick precisa ser único. Só membros ativos entram na ocupação da guild."
+      description="O nick precisa ser único. A guild também pode ser escolhida no cadastro da própria guild."
       pending={pending}
       onSubmit={(formData) =>
         save(
@@ -141,7 +151,7 @@ function MembroDialog({
           name="guildId"
           value={guildId}
           onChange={setGuildId}
-          options={guilds.map((guild) => ({ value: guild.id, label: guild.nome }))}
+          options={[{ value: "nenhuma", label: "Sem guild" }, ...guilds.map((guild) => ({ value: guild.id, label: guild.nome }))]}
           placeholder="Selecione a guild"
         />
       </Field>

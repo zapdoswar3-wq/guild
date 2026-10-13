@@ -27,11 +27,15 @@ export const guildSchema = z.object({
   status: z.enum(GUILD_STATUS, "Selecione o status."),
   criadaEm: dateField,
   observacoes: optionalText.max(500, "Observações muito longas."),
+  membroIds: z.array(z.string().trim().min(1)),
 });
 
 export const membroSchema = z.object({
   nick: z.string().trim().min(2, "Informe o nick.").max(32, "Nick muito longo."),
-  guildId: z.string().trim().min(1, "Selecione a guild."),
+  guildId: z
+    .string()
+    .trim()
+    .transform((value) => (value === "" || value === "nenhuma" ? null : value)),
   cargo: z.enum(CARGOS, "Selecione o cargo."),
   nivel: z.coerce.number().int("Use um número inteiro.").min(1, "O nível precisa ser pelo menos 1."),
   pontos: z.coerce.number().int("Use um número inteiro.").min(0, "Pontos não pode ser negativo."),

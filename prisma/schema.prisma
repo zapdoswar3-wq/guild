@@ -40,8 +40,8 @@ model Guild {
 model Membro {
   id        String     @id @default(cuid())
   nick      String     @unique
-  guildId   String
-  guild     Guild      @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  guildId   String?
+  guild     Guild?     @relation(fields: [guildId], references: [id], onDelete: SetNull)
   cargo     String
   nivel     Int
   pontos    Int

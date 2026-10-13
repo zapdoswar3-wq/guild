@@ -14,9 +14,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { GUILD_STATUS, TIERS } from "@/lib/constants";
 import { todayISO } from "@/lib/dates";
 import { formatDate, formatDecimal, formatInteger, formatPercent, occupationPercent } from "@/lib/format";
-import type { GuildOption, GuildPage, GuildRow } from "@/lib/types";
+import type { GuildOption, GuildPage, GuildRow, MemberOption } from "@/lib/types";
 
-export function GuildsScreen({ page, guilds }: { page: GuildPage; guilds: GuildOption[] }) {
+export function GuildsScreen({ page, guilds, members }: { page: GuildPage; guilds: GuildOption[]; members: MemberOption[] }) {
   const [form, setForm] = useState<GuildRow | "new" | null>(null);
   const [remove, setRemove] = useState<GuildRow | null>(null);
   const editing = form && form !== "new" ? form : null;
@@ -26,7 +26,7 @@ export function GuildsScreen({ page, guilds }: { page: GuildPage; guilds: GuildO
       <PageHeader
         section="CADASTROS"
         title="Guilds"
-        description="Cadastro das guilds, vagas e bônus de experiência. A ocupação considera apenas membros ativos."
+        description="Cadastro das guilds. Marque os membros que fazem parte de cada uma. A ocupação considera apenas membros ativos."
       >
         <CreateButton label="Nova guild" onClick={() => setForm("new")} />
       </PageHeader>
@@ -43,7 +43,7 @@ export function GuildsScreen({ page, guilds }: { page: GuildPage; guilds: GuildO
         <Table className="min-w-[980px]">
           <TableHeader>
             <TableRow>
-              {["Guild", "Líder", "Tier", "Status", "Ocupação", "Pontos", "Bônus XP", "Criada em"].map((label) => (
+              {["Guild", "Líder", "Membros", "Tier", "Status", "Ocupação", "Pontos", "Bônus XP", "Criada em"].map((label) => (
                 <TableHead key={label} className={headClass}>
                   {label}
                 </TableHead>
@@ -54,7 +54,7 @@ export function GuildsScreen({ page, guilds }: { page: GuildPage; guilds: GuildO
           <TableBody>
             {page.rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="py-12 text-center text-sm whitespace-normal text-[#8B91A7]">
+                <TableCell colSpan={10} className="py-12 text-center text-sm whitespace-normal text-[#8B91A7]">
                   Nenhum registro encontrado
                 </TableCell>
               </TableRow>
@@ -63,6 +63,9 @@ export function GuildsScreen({ page, guilds }: { page: GuildPage; guilds: GuildO
                 <TableRow key={guild.id}>
                   <TableCell className={`${cellClass} font-medium`}>{guild.nome}</TableCell>
                   <TableCell className={cellClass}>{guild.lider}</TableCell>
+                  <TableCell className={`${cellClass} max-w-56 whitespace-normal`}>
+                    {guild.membroNicks.length > 0 ? guild.membroNicks.join(", ") : "Nenhum membro"}
+                  </TableCell>
                   <TableCell className={cellClass}>{guild.tier}</TableCell>
                   <TableCell className={cellClass}>
                     <StatusBadge value={guild.status} />
@@ -83,13 +86,15 @@ export function GuildsScreen({ page, guilds }: { page: GuildPage; guilds: GuildO
         </Table>
       </div>
       <RecordCount count={page.rows.length} />
-      {form ? <GuildDialog key={editing?.id ?? "nova"} guild={editing} onOpenChange={(open) => !open && setForm(null)} /> : null}
+      {form ? (
+        <GuildDialog key={editing?.id ?? "nova"} guild={editing} members={members} onOpenChange={(open) => !open && setForm(null)} />
+      ) : null}
       <ConfirmDelete
         open={!!remove}
         onOpenChange={(open) => !open && setRemove(null)}
-        extra="A guild e todos os membros, talentos, objetivos, caçadas e missões vinculados serão apagados."
+        extra="A guild será apagada, junto com os talentos, objetivos, caçadas e missões dela. Os membros continuam cadastrados e ficam sem guild."
         requireAck
-        ackLabel="Confirmo a exclusão da guild e de todos os registros vinculados."
+        ackLabel="Confirmo a exclusão da guild e dos registros vinculados."
         successMessage="Guild excluída."
         onConfirm={() => deleteGuild(remove!.id)}
       />
@@ -97,17 +102,26 @@ export function GuildsScreen({ page, guilds }: { page: GuildPage; guilds: GuildO
   );
 }
 
-function GuildDialog({ guild, onOpenChange }: { guild: GuildRow | null; onOpenChange: (open: boolean) => void }) {
+function GuildDialog({
+  guild,
+  members,
+  onOpenChange,
+}: {
+  guild: GuildRow | null;
+  members: MemberOption[];
+  onOpenChange: (open: boolean) => void;
+}) {
   const { pending, errors, save } = useSave(() => onOpenChange(false));
   const [tier, setTier] = useState(guild?.tier ?? "A");
   const [status, setStatus] = useState(guild?.status ?? "Ativa");
+  const [membroIds, setMembroIds] = useState<string[]>(guild?.membroIds ?? []);
 
   return (
     <FormDialog
       open
       onOpenChange={onOpenChange}
       title={guild ? "Editar guild" : "Nova guild"}
-      description="Informe os dados da guild. O nome precisa ser único."
+      description="Informe os dados da guild e marque os membros que fazem parte dela. O nome precisa ser único."
       pending={pending}
       onSubmit={(formData) =>
         save(() => (guild ? updateGuild(guild.id, formData) : createGuild(formData)), guild ? "Guild atualizada." : "Guild criada.")
@@ -139,6 +153,40 @@ function GuildDialog({ guild, onOpenChange }: { guild: GuildRow | null; onOpenCh
       </Field>
       <Field label="Observações" className="grid gap-1.5 sm:col-span-2" error={errorOf(errors, "observacoes")}>
         <Textarea name="observacoes" defaultValue={guild?.observacoes ?? ""} className="min-h-20 bg-[#0F1117]" />
+      </Field>
+      <Field className="grid gap-1.5 sm:col-span-2" label="Membros" error={errorOf(errors, "membroIds")}>
+        <div className="grid max-h-48 gap-2 overflow-y-auto rounded-lg border border-[#262A36] bg-[#0F1117] p-3 sm:grid-cols-2">
+          {membroIds.map((id) => (
+            <input key={id} type="hidden" name="membroIds" value={id} />
+          ))}
+          {members.length === 0 ? (
+            <p className="text-sm text-[#8B91A7] sm:col-span-2">Nenhum membro cadastrado ainda.</p>
+          ) : (
+            members.map((member) => {
+              const checked = membroIds.includes(member.id);
+              const outraGuild = member.guildId && member.guildId !== guild?.id ? member.guildNome : null;
+              return (
+                <label key={member.id} className="flex items-center gap-2 text-sm text-[#E6E8EF]">
+                  <input
+                    type="checkbox"
+                    className="size-4 accent-[#6366F1]"
+                    checked={checked}
+                    onChange={() =>
+                      setMembroIds((current) =>
+                        checked ? current.filter((id) => id !== member.id) : [...current, member.id],
+                      )
+                    }
+                  />
+                  <span>
+                    {member.nick}
+                    {outraGuild ? <span className="text-[#8B91A7]"> · {outraGuild}</span> : null}
+                    {!member.guildId ? <span className="text-[#8B91A7]"> · sem guild</span> : null}
+                  </span>
+                </label>
+              );
+            })
+          )}
+        </div>
       </Field>
     </FormDialog>
   );

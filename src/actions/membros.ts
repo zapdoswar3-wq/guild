@@ -12,8 +12,10 @@ export async function createMembro(formData: FormData) {
   if (denied) return denied;
   const parsed = parseInput(membroSchema, formDataToObject(formData));
   if (!parsed.ok) return parsed;
-  const guildError = await assertGuildExists(parsed.data.guildId);
-  if (guildError) return failure(guildError, "guildId");
+  if (parsed.data.guildId) {
+    const guildError = await assertGuildExists(parsed.data.guildId);
+    if (guildError) return failure(guildError, "guildId");
+  }
 
   try {
     await prisma.membro.create({
@@ -36,8 +38,10 @@ export async function updateMembro(id: string, formData: FormData) {
   if (!parsed.ok) return parsed;
   const current = await prisma.membro.findUnique({ where: { id }, select: { id: true } });
   if (!current) return failure("Registro não encontrado.");
-  const guildError = await assertGuildExists(parsed.data.guildId);
-  if (guildError) return failure(guildError, "guildId");
+  if (parsed.data.guildId) {
+    const guildError = await assertGuildExists(parsed.data.guildId);
+    if (guildError) return failure(guildError, "guildId");
+  }
 
   try {
     await prisma.membro.update({

@@ -1,0 +1,5 @@
+ALTER TABLE "Membro" DROP CONSTRAINT "Membro_guildId_fkey";
+
+ALTER TABLE "Membro" ALTER COLUMN "guildId" DROP NOT NULL;
+
+ALTER TABLE "Membro" ADD CONSTRAINT "Membro_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild"("id") ON DELETE SET NULL ON UPDATE CASCADE;

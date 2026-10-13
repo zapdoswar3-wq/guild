@@ -22,7 +22,7 @@ export async function getOptions(): Promise<AppOptions> {
   const [guilds, members, talentos] = await Promise.all([
     prisma.guild.findMany({ select: { id: true, nome: true }, orderBy: { nome: "asc" } }),
     prisma.membro.findMany({
-      select: { id: true, nick: true, guildId: true, status: true },
+      select: { id: true, nick: true, guildId: true, status: true, guild: { select: { nome: true } } },
       orderBy: { nick: "asc" },
     }),
     prisma.talentoCatalogo.findMany({ orderBy: { nome: "asc" } }),
@@ -30,7 +30,13 @@ export async function getOptions(): Promise<AppOptions> {
 
   return {
     guilds,
-    members,
+    members: members.map((membro) => ({
+      id: membro.id,
+      nick: membro.nick,
+      guildId: membro.guildId,
+      guildNome: membro.guild?.nome ?? null,
+      status: membro.status,
+    })),
     talentos: talentos.map((talento) => ({
       id: talento.id,
       nome: talento.nome,
@@ -44,7 +50,7 @@ export async function getOptions(): Promise<AppOptions> {
 
 export async function getGuildPage(filters: Filters): Promise<GuildPage> {
   const guilds = await prisma.guild.findMany({
-    include: { membros: { select: { status: true } } },
+    include: { membros: { select: { id: true, nick: true, status: true }, orderBy: { nick: "asc" } } },
     orderBy: { nome: "asc" },
   });
 
@@ -61,11 +67,13 @@ export async function getGuildPage(filters: Filters): Promise<GuildPage> {
       criadaEm: toDateInput(guild.criadaEm),
       observacoes: guild.observacoes,
       ativos: guild.membros.filter((membro) => membro.status === "Ativo").length,
+      membroIds: guild.membros.map((membro) => membro.id),
+      membroNicks: guild.membros.map((membro) => membro.nick),
     }))
     .filter((guild) => {
       if (filters.guild && guild.id !== filters.guild) return false;
       if (filters.status && guild.status !== filters.status) return false;
-      return matches(filters.q, guild.nome, guild.lider, guild.observacoes);
+      return matches(filters.q, guild.nome, guild.lider, guild.observacoes, ...guild.membroNicks);
     });
 
   return {
@@ -102,7 +110,7 @@ export async function getMembroPage(filters: Filters): Promise<MembroPage> {
       id: membro.id,
       nick: membro.nick,
       guildId: membro.guildId,
-      guildNome: membro.guild.nome,
+      guildNome: membro.guild?.nome ?? null,
       cargo: membro.cargo,
       nivel: membro.nivel,
       pontos: membro.pontos,

@@ -3,7 +3,8 @@ export type GuildOption = { id: string; nome: string };
 export type MemberOption = {
   id: string;
   nick: string;
-  guildId: string;
+  guildId: string | null;
+  guildNome: string | null;
   status: string;
 };
 
@@ -34,6 +35,8 @@ export type GuildRow = {
   criadaEm: string;
   observacoes: string;
   ativos: number;
+  membroIds: string[];
+  membroNicks: string[];
 };
 
 export type GuildPage = {
@@ -49,8 +52,8 @@ export type GuildPage = {
 export type MembroRow = {
   id: string;
   nick: string;
-  guildId: string;
-  guildNome: string;
+  guildId: string | null;
+  guildNome: string | null;
   cargo: string;
   nivel: number;
   pontos: number;
