@@ -27,7 +27,6 @@ export const guildSchema = z.object({
   status: z.enum(GUILD_STATUS, "Selecione o status."),
   criadaEm: dateField,
   observacoes: optionalText.max(500, "Observações muito longas."),
-  membroIds: z.array(z.string().trim().min(1)),
 });
 
 export const membroSchema = z.object({

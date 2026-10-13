@@ -41,18 +41,20 @@ export function EnumSelect({
   onChange,
   options,
   placeholder = "Selecione",
+  disabled = false,
 }: {
   name: string;
   value: string;
   onChange: (value: string) => void;
   options: readonly string[] | { value: string; label: string }[];
   placeholder?: string;
+  disabled?: boolean;
 }) {
   const items = options.map((option) => (typeof option === "string" ? { value: option, label: option } : option));
   return (
     <>
       <input type="hidden" name={name} value={value} />
-      <Select value={value || undefined} onValueChange={onChange}>
+      <Select value={value || undefined} onValueChange={onChange} disabled={disabled}>
         <SelectTrigger className="w-full bg-[#0F1117]">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
@@ -154,6 +156,7 @@ export function FormDialog({
   description,
   pending,
   onSubmit,
+  readOnly = false,
   children,
 }: {
   open: boolean;
@@ -162,6 +165,7 @@ export function FormDialog({
   description?: string;
   pending: boolean;
   onSubmit: (formData: FormData) => void;
+  readOnly?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -176,17 +180,19 @@ export function FormDialog({
           noValidate
           onSubmit={(event) => {
             event.preventDefault();
-            onSubmit(new FormData(event.currentTarget));
+            if (!readOnly) onSubmit(new FormData(event.currentTarget));
           }}
         >
           <div className="grid gap-4 sm:grid-cols-2">{children}</div>
           <DialogFooter>
             <Button type="button" variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>
-              Cancelar
+              {readOnly ? "Fechar" : "Cancelar"}
             </Button>
-            <Button type="submit" disabled={pending}>
-              {pending ? "Salvando..." : "Salvar"}
-            </Button>
+            {readOnly ? null : (
+              <Button type="submit" disabled={pending}>
+                {pending ? "Salvando..." : "Salvar"}
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>

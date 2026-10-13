@@ -67,13 +67,16 @@ export async function getGuildPage(filters: Filters): Promise<GuildPage> {
       criadaEm: toDateInput(guild.criadaEm),
       observacoes: guild.observacoes,
       ativos: guild.membros.filter((membro) => membro.status === "Ativo").length,
-      membroIds: guild.membros.map((membro) => membro.id),
-      membroNicks: guild.membros.map((membro) => membro.nick),
+      membros: guild.membros.map((membro) => ({
+        id: membro.id,
+        nick: membro.nick,
+        status: membro.status,
+      })),
     }))
     .filter((guild) => {
       if (filters.guild && guild.id !== filters.guild) return false;
       if (filters.status && guild.status !== filters.status) return false;
-      return matches(filters.q, guild.nome, guild.lider, guild.observacoes, ...guild.membroNicks);
+      return matches(filters.q, guild.nome, guild.lider, guild.observacoes, ...guild.membros.map((membro) => membro.nick));
     });
 
   return {

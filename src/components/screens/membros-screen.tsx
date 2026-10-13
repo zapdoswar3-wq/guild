@@ -25,7 +25,7 @@ export function MembrosScreen({ page, options }: { page: MembroPage; options: Ap
       <PageHeader
         section="CADASTROS"
         title="Membros"
-        description="Cada membro aparece com a guild em que está. Quem não foi marcado em nenhuma guild fica sem guild."
+        description="A guild de cada membro é escolhida neste cadastro. A coluna Guild mostra onde ele está."
       >
         <CreateButton label="Novo membro" onClick={() => setForm("new")} />
       </PageHeader>
@@ -134,7 +134,7 @@ function MembroDialog({
       open
       onOpenChange={onOpenChange}
       title={membro ? "Editar membro" : "Novo membro"}
-      description="O nick precisa ser único. A guild também pode ser escolhida no cadastro da própria guild."
+      description="O nick precisa ser único. Escolha aqui a guild deste membro."
       pending={pending}
       onSubmit={(formData) =>
         save(

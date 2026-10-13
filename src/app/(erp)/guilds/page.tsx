@@ -11,5 +11,5 @@ export default async function GuildsPage({
 }) {
   const filters = readFilters(await searchParams);
   const [page, options] = await Promise.all([getGuildPage(filters), getOptions()]);
-  return <GuildsScreen page={page} guilds={options.guilds} members={options.members} />;
+  return <GuildsScreen page={page} guilds={options.guilds} />;
 }

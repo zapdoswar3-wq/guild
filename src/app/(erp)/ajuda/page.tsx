@@ -29,12 +29,12 @@ const SECOES = [
   {
     titulo: "Guilds",
     texto:
-      "Cadastro de nome, líder, tier, pontos, bônus de XP, vagas e status. Na mesma tela, marque os membros que fazem parte da guild. A ocupação é membros ativos divididos pelas vagas. Excluir a guild apaga talentos, objetivos, caçadas e missões dela. Os membros continuam cadastrados e ficam sem guild.",
+      "Cadastro de nome, líder, tier, pontos, bônus de XP, vagas e status. Clique no nome da guild para abrir o cadastro e ver somente os membros dela. A guild de cada pessoa é escolhida na tela de Membros. A ocupação é membros ativos divididos pelas vagas. Excluir a guild apaga talentos, objetivos, caçadas e missões dela. Os membros continuam cadastrados e ficam sem guild.",
   },
   {
     titulo: "Membros",
     texto:
-      "Cada nick é único e a coluna Guild mostra em qual guild o membro está. Sem guild significa que ele ainda não foi marcado em nenhuma. As colunas de missões abertas, missões feitas, caçadas feitas e taxa de conclusão são calculadas. Só o status Ativo entra na contagem de vagas da guild.",
+      "Cada nick é único. A guild é escolhida neste cadastro e a coluna Guild mostra onde o membro está. Sem guild significa que nenhuma guild foi selecionada. As colunas de missões abertas, missões feitas, caçadas feitas e taxa de conclusão são calculadas. Só o status Ativo entra na contagem de vagas da guild.",
   },
   {
     titulo: "Talentos",

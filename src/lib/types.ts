@@ -23,6 +23,12 @@ export type AppOptions = {
   talentos: TalentOption[];
 };
 
+export type GuildMemberItem = {
+  id: string;
+  nick: string;
+  status: string;
+};
+
 export type GuildRow = {
   id: string;
   nome: string;
@@ -35,8 +41,7 @@ export type GuildRow = {
   criadaEm: string;
   observacoes: string;
   ativos: number;
-  membroIds: string[];
-  membroNicks: string[];
+  membros: GuildMemberItem[];
 };
 
 export type GuildPage = {
